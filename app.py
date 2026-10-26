@@ -1,4 +1,3 @@
-```python
 import streamlit as st
 
 # -----------------------------
@@ -80,20 +79,33 @@ rules = [
 
 def forward_chain(att_val, marks_val, study_val):
 
-    att = "High" if att_val >= 85 else (
-        "Moderate" if att_val >= 75 else "Low"
-    )
+    # Convert attendance into category
+    if att_val >= 85:
+        att = "High"
+    elif att_val >= 75:
+        att = "Moderate"
+    else:
+        att = "Low"
 
-    mrk = "Excellent" if marks_val >= 80 else (
-        "Good" if marks_val >= 60 else (
-            "Average" if marks_val >= 40 else "Poor"
-        )
-    )
+    # Convert marks into category
+    if marks_val >= 80:
+        mrk = "Excellent"
+    elif marks_val >= 60:
+        mrk = "Good"
+    elif marks_val >= 40:
+        mrk = "Average"
+    else:
+        mrk = "Poor"
 
-    std = "High" if study_val >= 15 else (
-        "Moderate" if study_val >= 7 else "Low"
-    )
+    # Convert study hours into category
+    if study_val >= 15:
+        std = "High"
+    elif study_val >= 7:
+        std = "Moderate"
+    else:
+        std = "Low"
 
+    # Initial working memory
     memory = {
         "att": att,
         "marks": mrk,
@@ -105,12 +117,14 @@ def forward_chain(att_val, marks_val, study_val):
     fired_rules = []
     new_facts = []
 
+    # Forward chaining process
     while True:
 
         rule_fired = False
 
         for conditions, consequences, desc in rules:
 
+            # Check whether all rule conditions are satisfied
             if (
                 desc not in fired_rules
                 and all(
@@ -121,24 +135,30 @@ def forward_chain(att_val, marks_val, study_val):
 
                 fired_rules.append(desc)
 
+                # Add newly deduced facts
                 for k, v in consequences.items():
 
                     if k not in memory:
-                        new_facts.append(f"{k} = {v}")
+                        new_facts.append(
+                            f"{k} = {v}"
+                        )
 
                     memory[k] = v
 
                 rule_fired = True
                 break
 
+        # Stop when no more rules can fire
         if not rule_fired:
             break
 
-    pred = memory.get(
+    # Final prediction
+    prediction = memory.get(
         "pred",
         "Second Class (Grade B)"
     )
 
+    # Recommendation
     advice = memory.get(
         "advice",
         "Maintain regular study hours."
@@ -148,7 +168,7 @@ def forward_chain(att_val, marks_val, study_val):
         initial_facts,
         fired_rules,
         new_facts,
-        pred,
+        prediction,
         advice
     )
 
@@ -181,8 +201,14 @@ def set_at_risk():
 
 st.set_page_config(
     page_title="Student Performance Predictor",
+    page_icon="🎓",
     layout="wide"
 )
+
+
+# -----------------------------
+# Main Title
+# -----------------------------
 
 st.title("🎓 Student Performance Prediction System")
 
@@ -203,6 +229,154 @@ if "attendance" not in st.session_state:
 
 if "marks" not in st.session_state:
     st.session_state.marks = 35.0
-    
 
-if "study" not in st
+if "study" not in st.session_state:
+    st.session_state.study = 20.0
+
+
+# -----------------------------
+# Sidebar - Student Inputs
+# -----------------------------
+
+st.sidebar.header("👤 Student Inputs")
+
+attendance = st.sidebar.number_input(
+    "Attendance (%)",
+    min_value=0.0,
+    max_value=100.0,
+    key="attendance"
+)
+
+marks = st.sidebar.number_input(
+    "Internal Marks (/100)",
+    min_value=0.0,
+    max_value=100.0,
+    key="marks"
+)
+
+study = st.sidebar.number_input(
+    "Study Hours (per week)",
+    min_value=0.0,
+    max_value=100.0,
+    key="study"
+)
+
+
+# -----------------------------
+# Test Presets
+# -----------------------------
+
+st.sidebar.subheader("🧪 Test Values")
+
+st.sidebar.button(
+    "🏆 Topper Student",
+    on_click=set_topper
+)
+
+st.sidebar.button(
+    "📚 Hard Worker / Low Marks",
+    on_click=set_hard_worker
+)
+
+st.sidebar.button(
+    "⚠️ At Risk Student",
+    on_click=set_at_risk
+)
+
+
+# -----------------------------
+# Run Prediction Button
+# -----------------------------
+
+if st.button("🔍 Run Prediction"):
+
+    (
+        initial_facts,
+        fired_rules,
+        new_facts,
+        prediction,
+        advice
+    ) = forward_chain(
+        attendance,
+        marks,
+        study
+    )
+
+    st.divider()
+
+    # -----------------------------
+    # 1. Initial Facts
+    # -----------------------------
+
+    st.header("1. Initial Facts - Working Memory")
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.write(
+            f"**Attendance:** {initial_facts['att']}"
+        )
+        st.write(
+            f"{attendance}%"
+        )
+
+    with col2:
+        st.write(
+            f"**Marks:** {initial_facts['marks']}"
+        )
+        st.write(
+            f"{marks}/100"
+        )
+
+    with col3:
+        st.write(
+            f"**Study:** {initial_facts['study']}"
+        )
+        st.write(
+            f"{study} hrs/week"
+        )
+
+
+    # -----------------------------
+    # 2. Rules Fired
+    # -----------------------------
+
+    st.header("2. Rules Fired")
+
+    if fired_rules:
+
+        for rule in fired_rules:
+            st.info(rule)
+
+    else:
+        st.write("No rules fired")
+
+
+    # -----------------------------
+    # 3. New Facts Deduced
+    # -----------------------------
+
+    st.header("3. New Facts Deduced")
+
+    if new_facts:
+
+        for fact in new_facts:
+            st.success(fact)
+
+    else:
+        st.write("None")
+
+
+    # -----------------------------
+    # 4. Final Prediction
+    # -----------------------------
+
+    st.header("4. Final Prediction & Recommendation")
+
+    st.success(
+        f"🎯 Prediction: {prediction}"
+    )
+
+    st.write(
+        f"**Recommendation:** {advice}"
+    )
