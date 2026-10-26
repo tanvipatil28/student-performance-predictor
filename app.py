@@ -1,3 +1,4 @@
+```python
 import streamlit as st
 
 # -----------------------------
@@ -112,8 +113,10 @@ def forward_chain(att_val, marks_val, study_val):
 
             if (
                 desc not in fired_rules
-                and all(memory.get(k) == v
-                        for k, v in conditions.items())
+                and all(
+                    memory.get(k) == v
+                    for k, v in conditions.items()
+                )
             ):
 
                 fired_rules.append(desc)
@@ -151,7 +154,29 @@ def forward_chain(att_val, marks_val, study_val):
 
 
 # -----------------------------
-# Streamlit Interface
+# Preset Functions
+# -----------------------------
+
+def set_topper():
+    st.session_state.attendance = 92.0
+    st.session_state.marks = 88.0
+    st.session_state.study = 18.0
+
+
+def set_hard_worker():
+    st.session_state.attendance = 88.0
+    st.session_state.marks = 35.0
+    st.session_state.study = 20.0
+
+
+def set_at_risk():
+    st.session_state.attendance = 45.0
+    st.session_state.marks = 28.0
+    st.session_state.study = 3.0
+
+
+# -----------------------------
+# Page Configuration
 # -----------------------------
 
 st.set_page_config(
@@ -159,13 +184,9 @@ st.set_page_config(
     layout="wide"
 )
 
-st.title(
-    "🎓 Student Performance Prediction System"
-)
+st.title("🎓 Student Performance Prediction System")
 
-st.subheader(
-    "AI-Based Forward Chaining System"
-)
+st.subheader("AI-Based Forward Chaining System")
 
 st.write(
     "Enter student information to predict performance "
@@ -174,113 +195,14 @@ st.write(
 
 
 # -----------------------------
-# Student Inputs
+# Initialize Session State
 # -----------------------------
 
-st.sidebar.header("Student Inputs")
+if "attendance" not in st.session_state:
+    st.session_state.attendance = 88.0
 
-attendance = st.sidebar.number_input(
-    "Attendance (%)",
-    min_value=0.0,
-    max_value=100.0,
-    value=88.0
-)
+if "marks" not in st.session_state:
+    st.session_state.marks = 35.0
+    
 
-marks = st.sidebar.number_input(
-    "Internal Marks (/100)",
-    min_value=0.0,
-    max_value=100.0,
-    value=35.0
-)
-
-study = st.sidebar.number_input(
-    "Study Hours (per week)",
-    min_value=0.0,
-    max_value=100.0,
-    value=20.0
-)
-
-
-# -----------------------------
-# Test Presets
-# -----------------------------
-
-st.sidebar.subheader("Test Values")
-
-if st.sidebar.button("Topper Student"):
-    attendance = 92
-    marks = 88
-    study = 18
-
-if st.sidebar.button("Hard Worker / Low Marks"):
-    attendance = 88
-    marks = 35
-    study = 20
-
-if st.sidebar.button("At Risk Student"):
-    attendance = 45
-    marks = 28
-    study = 3
-
-
-# -----------------------------
-# Run Prediction
-# -----------------------------
-
-if st.button("🔍 Run Prediction"):
-
-    initial_facts, fired_rules, new_facts, prediction, advice = \
-        forward_chain(attendance, marks, study)
-
-    st.divider()
-
-    # 1 Initial Facts
-    st.header("1. Initial Facts - Working Memory")
-
-    st.write(
-        f"**Attendance:** {initial_facts['att']} ({attendance}%)"
-    )
-
-    st.write(
-        f"**Marks:** {initial_facts['marks']} ({marks}/100)"
-    )
-
-    st.write(
-        f"**Study:** {initial_facts['study']} ({study} hrs/week)"
-    )
-
-
-    # 2 Rules Fired
-    st.header("2. Rules Fired")
-
-    if fired_rules:
-
-        for rule in fired_rules:
-            st.info(rule)
-
-    else:
-        st.write("No rules fired")
-
-
-    # 3 New Facts
-    st.header("3. New Facts Deduced")
-
-    if new_facts:
-
-        for fact in new_facts:
-            st.success(fact)
-
-    else:
-        st.write("None")
-
-
-    # 4 Final Prediction
-    st.header("4. Final Prediction & Recommendation")
-
-    st.success(
-        f"Prediction: {prediction}"
-    )
-
-    st.write(
-        f"**Recommendation:** {advice}"
-    )
+if "study" not in st
